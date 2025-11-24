@@ -26,9 +26,10 @@ A table containing a collection of scripts that will enable a free camera tool i
  
  - Games currently supported:
 	
-	|**Game**|**Serial**|**MD5
+	|**Game**|**Serial**|
 	|-|-|
-	|**Ace Combat 5: The Unsung War**  **GREATEST HITS: Ace Combat 5: The Unsung War**|**SLUS-20851**  **SLUS-20851GH**|
+	|**Ace Combat 5: The Unsung War**|**SLUS-20851**|
+	|**GREATEST HITS: Ace Combat 5: The Unsung War**|**SLUS-20851GH**|
 
 #### Special thanks:
 
