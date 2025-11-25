@@ -19,8 +19,6 @@ A table containing a collection of scripts that will enable a free camera tool i
 [Check the wiki section.]()
 
 #### Notes:
-
-- This table will work with version 2.4 and previous stable releases.
  
  - **The "freecam" functions are not compatible with the latest nightly builds of the emulator.** Stick to the last stable releases if you want to use them.
  
