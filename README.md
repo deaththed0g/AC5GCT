@@ -1,6 +1,6 @@
 # Ace Combat 5: The Unsung War - General cheat table
 
-A table containing a collection of scripts that will enable a free camera tool in the game. Besides the "freecam" functions the table also contains some scripts that will modify (as well let you modify) some gameplay aspects giving the game some rudimentary QoL features.
+A Cheat Engine table containing a collection of scripts that will enable a free camera tool in the game. Besides the "freecam" functions the table also contains some scripts that will modify (as well let you modify) some gameplay aspects giving the game some rudimentary QoL features.
 
 #### Download links:
 
