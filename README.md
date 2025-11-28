@@ -16,7 +16,7 @@ A Cheat Engine table containing a collection of scripts that will enable a free 
 
 #### Usage:
 
-[Check the wiki section.]()
+[Check the wiki section.](https://github.com/deaththed0g/AC5GCT/wiki)
 
 #### Notes:
  
