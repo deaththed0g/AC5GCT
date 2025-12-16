@@ -4,7 +4,7 @@ A Cheat Engine table containing a collection of scripts that will enable a free 
 
 #### Download links:
 
-- Check the [releases]() section.
+- Check the [releases](https://github.com/deaththed0g/AC5GCT/releases) section.
 
 #### Required files and tools:
 
