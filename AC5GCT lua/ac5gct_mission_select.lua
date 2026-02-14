@@ -6,7 +6,7 @@
 ==============================================================
 By death_the_d0g (death_the_d0g @ Twitter and deaththed0g @ Github)
 This script was written and is best viewed on Notepad++.
-v111125
+v120226
 ]]
 
 setMethodProperty(getMainForm(), "OnCloseQuery", nil) -- Disable CE's save prompt.
@@ -30,31 +30,41 @@ local function pcsx2_version_check()
 
 	end
 
-	if process_found[1] ~= nil then
+	if process_found[1] ~= nil then -- Check if there's an instance of PCSX2 up.
 
-		if (process_found[2] == getOpenedProcessID()) then
+		if #process_found <= 2 then -- If CE is using AutoAttach then check how many instances of PCSX2 are up.
 
-			if process_found[1] == "pcsx2.exe" then
+			if (process_found[2] == getOpenedProcessID()) then -- Check if CE is attached to PCSX2.
 
-				version_id = 1
-				pcsx2_id_ram_start = getAddress(0x20000000)
+				-- Set memory region according to the version of the emulator.
+				-- Check if there's a game loaded, too.
+				if process_found[1] == "pcsx2.exe" then
 
-				if readInteger(pcsx2_id_ram_start) == nil then
+					version_id = 1
+					pcsx2_id_ram_start = getAddress(0x20000000)
 
-					error_flag = 3
+					if readInteger(pcsx2_id_ram_start) == nil then
+
+						error_flag = 3
+
+					end
+
+				elseif process_found[1] == "pcsx2-qt.exe" then
+
+					version_id = 2
+					pcsx2_id_ram_start = getAddress(readPointer("pcsx2-qt.EEmem"))
+
+					if readInteger(pcsx2_id_ram_start) == 0 then
+
+						error_flag = 3
+
+					end
 
 				end
 
-			elseif process_found[1] == "pcsx2-qt.exe" then
+			else
 
-				version_id = 2
-				pcsx2_id_ram_start = getAddress(readPointer("pcsx2-qt.EEmem"))
-
-				if readInteger(pcsx2_id_ram_start) == 0 then
-
-					error_flag = 3
-
-				end
+				error_flag = 1
 
 			end
 
@@ -175,45 +185,45 @@ end
 
 -- Write value/check emulator status/create memory record function
 function AC5missionSelect_outSortieCheck(AC5missionSelect_outSortieCheckTimer)
-	
+
 	-- Check if the emulator is up.
 	if readInteger(EEMEMver_AC5missionSelect[2]) ~= nil then
-		
+
 		-- Check if the memory record was not deleted. If true then create a new one.
 		if getAddressList().getMemoryRecordByDescription("Type the mission's ID") then
-		
+
 			getAddressList().getMemoryRecordByDescription("Type the mission's ID").Active = true
-			
+
 			-- Write User's value then freeze record as long the script is enabled.
 			AC5missionSelect_ID = tonumber(getAddressList().getMemoryRecordByDescription("Type the mission's ID").getValue())
-			
+
 			-- Skip broken/unplayable stages.
 			if AC5missionSelect_ID > 0 and AC5missionSelect_ID < 92 then
-				
+
 				if (AC5missionSelect_ID > 70 and AC5missionSelect_ID < 86) or (AC5missionSelect_ID > 86 and AC5missionSelect_ID < 91) then
-				
+
 					AC5missionSelect_ID = 1
 
 				end
-			
+
 			else
-			
+
 				AC5missionSelect_ID = 1
-				
+
 			end
-			
+
 			getAddressList().getMemoryRecordByDescription("Type the mission's ID").Value = AC5missionSelect_ID
-		
+
 		else
-		
+
 			create_memory_record(EEMEMver_AC5missionSelect[2] + 0x5C8CBA, {0x0}, {vtByte}, {"Type the mission's ID"}, getAddressList().getMemoryRecordByDescription("Select mission"))
-		
+
 		end
-		
+
 	else
-		
+
 		getAddressList().getMemoryRecordByDescription("Select mission").Active = false
-	
+
 	end
 
 end
@@ -232,27 +242,18 @@ EEMEMver_AC5missionSelect = pcsx2_version_check()
 
 if (EEMEMver_AC5missionSelect[3] == nil) then
 
-	-- Check if the emulator version is compatible with this script.
-	if (EEMEMver_AC5missionSelect[1] == 2) then
+	-- Check if the emulator has the right game loaded.
+	local SLUS_20851_check = memscan_func(soExactValue, vtByteArray, nil, "80 55 42 00 90 55 42 00 A0 55 42 00 B0 55 42 00", nil, EEMEMver_AC5missionSelect[2] + 0x300000, EEMEMver_AC5missionSelect[2] + 0x4000000, "", 2, "0", true, nil, nil, nil)
 
-		-- Check if the emulator has the right game loaded.
-		local SLUS_20851_check = memscan_func(soExactValue, vtByteArray, nil, "80 55 42 00 90 55 42 00 A0 55 42 00 B0 55 42 00", nil, EEMEMver_AC5missionSelect[2] + 0x300000, EEMEMver_AC5missionSelect[2] + 0x4000000, "", 2, "0", true, nil, nil, nil)
+	if #SLUS_20851_check ~= 0 then
 
-		if #SLUS_20851_check ~= 0 then
-			
-			-- Process with the script activation if all checks were passed.
-			IsAC5missionSelectEnabled = true
+		-- Process with the script activation if all checks were passed.
+		IsAC5missionSelectEnabled = true
 
-		else
-
-			showMessage("<< This script is not compatible with the game you're currently emulating. >>")
-
-		end
-	
 	else
-	
-		showMessage("<< This script is only compatible with PCSX2-qt. >>")
-	
+
+		showMessage("<< This script is not compatible with the game you're currently emulating. >>")
+
 	end
 
 else
@@ -278,10 +279,10 @@ end
 ----------------+
 
 if IsAC5missionSelectEnabled then
-	
+
 	-- Create a memory record so the User can input their desire value.
 	create_memory_record(EEMEMver_AC5missionSelect[2] + 0x5C8CBA, {0x0}, {vtByte}, {"Type the mission's ID"}, getAddressList().getMemoryRecordByDescription("Select mission"))
-	
+
 	-- Create a timer object that will execute the function that checks the emulator status
 	-- and handle memory record creation and value input.
 	AC5missionSelect_outSortieCheck_Timer = createTimer()
@@ -297,12 +298,12 @@ if syntaxcheck then return end
 
 -- Restore modified data to their default values, destroy headers, timers if any and clear flags on script deactivation.
 if IsAC5missionSelectEnabled then
-	
+
 	if AC5missionSelect_outSortieCheck_Timer ~= nil then
-		
+
 		AC5missionSelect_outSortieCheck_Timer.destroy()
 		AC5missionSelect_outSortieCheck_Timer = nil
-		
+
 	end
 
 	getAddressList().getMemoryRecordByDescription("Type the mission's ID").destroy()

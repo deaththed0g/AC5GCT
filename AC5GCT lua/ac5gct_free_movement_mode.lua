@@ -6,12 +6,7 @@
 ===========================================================
 By death_the_d0g (death_the_d0g @ Twitter and deaththed0g @ Github)
 This script was written and is best viewed on Notepad++.
-v221125
-
-TODO:
--- Redo everything
--- Shorten the code comments
--- Look for the movement speed address.
+v120226
 ]]
 
 setMethodProperty(getMainForm(), "OnCloseQuery", nil) -- Disable CE's save prompt.
@@ -75,38 +70,48 @@ local function pcsx2_version_check()
 
 	end
 
-	if process_found[1] ~= nil then
+	if process_found[1] ~= nil then -- Check if there's an instance of PCSX2 up.
+		
+		if #process_found <= 2 then -- If CE is using AutoAttach then check how many instances of PCSX2 are up.
 
-		if (process_found[2] == getOpenedProcessID()) then
-
-			if process_found[1] == "pcsx2.exe" then
-
-				version_id = 1
-				pcsx2_id_ram_start = getAddress(0x20000000)
-
-				if readInteger(pcsx2_id_ram_start) == nil then
-
-					error_flag = 3
-
+			if (process_found[2] == getOpenedProcessID()) then -- Check if CE is attached to PCSX2.
+				
+				-- Set memory region according to the version of the emulator.
+				-- Check if there's a game loaded, too.
+				if process_found[1] == "pcsx2.exe" then
+	
+					version_id = 1
+					pcsx2_id_ram_start = getAddress(0x20000000)
+	
+					if readInteger(pcsx2_id_ram_start) == nil then
+	
+						error_flag = 3
+	
+					end
+	
+				elseif process_found[1] == "pcsx2-qt.exe" then
+	
+					version_id = 2
+					pcsx2_id_ram_start = getAddress(readPointer("pcsx2-qt.EEmem"))
+	
+					if readInteger(pcsx2_id_ram_start) == 0 then
+	
+						error_flag = 3
+	
+					end
+	
 				end
-
-			elseif process_found[1] == "pcsx2-qt.exe" then
-
-				version_id = 2
-				pcsx2_id_ram_start = getAddress(readPointer("pcsx2-qt.EEmem"))
-
-				if readInteger(pcsx2_id_ram_start) == 0 then
-
-					error_flag = 3
-
-				end
-
+	
+			else
+	
+				error_flag = 1
+	
 			end
-
+		
 		else
-
+		
 			error_flag = 2
-
+		
 		end
 
 	else
@@ -166,44 +171,35 @@ if (IsAC5freecamGameplayEnabled or IsAC5adjustTPSviewCamEnabled) ~= true then
 
 	if (EERAMver_AC5freeMovement[3] == nil) then
 
-		-- Check if the emulator version is compatible with this script.
-		if (EERAMver_AC5freeMovement[1] == 2) then
+		-- Check if the emulator has the right game loaded.
+		local SLUS_20851_check = memscan_func(soExactValue, vtByteArray, nil, "80 55 42 00 90 55 42 00 A0 55 42 00 B0 55 42 00", nil, EERAMver_AC5freeMovement[2] + 0x300000, EERAMver_AC5freeMovement[2] + 0x4000000, "", 2, "0", true, nil, nil, nil)
 
-			-- Check if the emulator has the right game loaded.
-			local SLUS_20851_check = memscan_func(soExactValue, vtByteArray, nil, "80 55 42 00 90 55 42 00 A0 55 42 00 B0 55 42 00", nil, EERAMver_AC5freeMovement[2] + 0x300000, EERAMver_AC5freeMovement[2] + 0x4000000, "", 2, "0", true, nil, nil, nil)
+		if #SLUS_20851_check ~= 0 then
 
-			if #SLUS_20851_check ~= 0 then
-
-				-- Check if the player is currently in a mission.
-				if (readBytes(EERAMver_AC5freeMovement[2] + 0x47B87C, 1) == 1) then
-				
-					-- Check if the script can be used in the current game state.
-					if value_exists({768, 518, 774, 516, 772, 517, 773}, readSmallInteger(EERAMver_AC5freeMovement[2] + 0x6CD49C, 2)) then
+			-- Check if the player is currently in a mission.
+			if (readBytes(EERAMver_AC5freeMovement[2] + 0x47B87C, 1) == 1) then
+			
+				-- Check if the script can be used in the current game state.
+				if value_exists({768, 518, 774, 516, 772, 517, 773}, readSmallInteger(EERAMver_AC5freeMovement[2] + 0x6CD49C, 2)) then
 		
-						-- Enable script if all checks were passed.
-						IsAC5freeMovementEnabled = true
-					
-					else
-					
-						showMessage("<< The script won't work while cutscenes are playing. >>")
-					
-					end
-					
+					-- Enable script if all checks were passed.
+					IsAC5freeMovementEnabled = true
+				
 				else
 				
-					showMessage("<< You'll need to be in a mission to use this script. >>")
+					showMessage("<< The script won't work while cutscenes are playing. >>")
 				
 				end
-
+				
 			else
-
-				showMessage("<< This script is not compatible with the game you're currently emulating. >>")
-
+			
+				showMessage("<< You'll need to be in a mission to use this script. >>")
+			
 			end
 
 		else
 
-			showMessage("<< This script is only compatible with PCSX2-qt. >>")
+			showMessage("<< This script is not compatible with the game you're currently emulating. >>")
 
 		end
 
@@ -259,7 +255,7 @@ end
 
 if syntaxcheck then return end
 
--- Restore modified data to their default values, destroy headers, timers if any and clear flags on script deactivation.
+-- Restore modified data to their default values, destroy headers, timers if any and clear flags and tables on script deactivation.
 if IsAC5freeMovementEnabled then
 
 	if readInteger(EERAMver_AC5freeMovement[2]) ~= nil then
@@ -275,7 +271,6 @@ if IsAC5freeMovementEnabled then
 	end
 
 	AC5freeMovement_flagAddress = nil
-
 	IsAC5freeMovementEnabled = nil
 
 end

@@ -6,7 +6,7 @@
 ============================================================================
 By death_the_d0g (death_the_d0g @ Twitter and deaththed0g @ Github)
 This script was written and is best viewed on Notepad++.
-v211125
+v120226
 ]]
 
 setMethodProperty(getMainForm(), "OnCloseQuery", nil) -- Disable CE's save prompt.
@@ -70,31 +70,41 @@ local function pcsx2_version_check()
 
 	end
 
-	if process_found[1] ~= nil then
+	if process_found[1] ~= nil then -- Check if there's an instance of PCSX2 up.
 
-		if (process_found[2] == getOpenedProcessID()) then
+		if #process_found <= 2 then -- If CE is using AutoAttach then check how many instances of PCSX2 are up.
 
-			if process_found[1] == "pcsx2.exe" then
+			if (process_found[2] == getOpenedProcessID()) then -- Check if CE is attached to PCSX2.
 
-				version_id = 1
-				pcsx2_id_ram_start = getAddress(0x20000000)
+				-- Set memory region according to the version of the emulator.
+				-- Check if there's a game loaded, too.
+				if process_found[1] == "pcsx2.exe" then
 
-				if readInteger(pcsx2_id_ram_start) == nil then
+					version_id = 1
+					pcsx2_id_ram_start = getAddress(0x20000000)
 
-					error_flag = 3
+					if readInteger(pcsx2_id_ram_start) == nil then
+
+						error_flag = 3
+
+					end
+
+				elseif process_found[1] == "pcsx2-qt.exe" then
+
+					version_id = 2
+					pcsx2_id_ram_start = getAddress(readPointer("pcsx2-qt.EEmem"))
+
+					if readInteger(pcsx2_id_ram_start) == 0 then
+
+						error_flag = 3
+
+					end
 
 				end
 
-			elseif process_found[1] == "pcsx2-qt.exe" then
+			else
 
-				version_id = 2
-				pcsx2_id_ram_start = getAddress(readPointer("pcsx2-qt.EEmem"))
-
-				if readInteger(pcsx2_id_ram_start) == 0 then
-
-					error_flag = 3
-
-				end
+				error_flag = 1
 
 			end
 
@@ -142,15 +152,15 @@ local function memscan_func(scanoption, vartype, roundingtype, input1, input2, s
 
 end
 
--- NPC attack behavior modifierifier function
+-- NPC attack behavior modifier function
 function AC5npcAttackModifier_outSortieCheck(AC5npcAttackModifier_outSortieCheckTimer)
-	
+
 	-- Execute function while PCSX2 is up.
 	if readInteger(EEMEMver_AC5npcAttackModifier[2]) ~= nil then
-		
+
 		--If the player is currently in a mission, modify data.
 		if readBytes(EEMEMver_AC5npcAttackModifier[2] + 0x47B4C4, 1) == 4 then
-			
+
 			-- Pause function and app.
 			AC5npcAttackModifier_outSortieCheckTimer.enabled = false
 
@@ -182,17 +192,17 @@ function AC5npcAttackModifier_outSortieCheck(AC5npcAttackModifier_outSortieCheck
 								--	local current_script_toc = retrieve_toc(current_entities_group[1] + 0x50)
 								--
 								--	for i = 1, #current_script_toc do
-								--		
+								--
 								--		-- Uncomment these if they are causing issues
 								--		-- Engagement range
 								--		if readInteger(current_script_toc[i] + 0x10) == 2 then
 								--
 								--			AC5npcAttackModifier_dataList[#AC5npcAttackModifier_dataList + 1] = current_script_toc[i] + 0x60
 								--			AC5npcAttackModifier_dataList[#AC5npcAttackModifier_dataList + 1] = readBytes(current_script_toc[i] + 0x60, 4, true)
-								--			
+								--
 								--			writeFloat(current_script_toc[i] + 0x60, 12800000.0) -- Increase engagement range
-								--			
-								--			
+								--
+								--
 								--			writeBytes(current_script_toc[i] + 0x7B, {0x0, 0xFF, 0xFF}) -- Change "attack entity" flags so they will attack any enemy instead of attacking the ones dictated by its script data.
 								--
 								--		end
@@ -200,7 +210,7 @@ function AC5npcAttackModifier_outSortieCheck(AC5npcAttackModifier_outSortieCheck
 								--	end
 
 								if i ~= 1 then
-									
+
 									-- Exclude some specific enemies in "escort"/defense-type missions.
 									-- This is because they will obliterate the allied units to be defended in seconds.
 									if not value_exists({"ABN TANK", "PILLBOX", "TANK", "CTRL.TOWER", "UNKNOWN"}, readString(current_entities_group[i] + 0x50, 0x20)) then
@@ -310,7 +320,7 @@ function AC5npcAttackModifier_outSortieCheck(AC5npcAttackModifier_outSortieCheck
 				end
 
 			end
-			
+
 			-- Create a function to check if the game is in a mission.
 			if AC5npcAttackModifier_inSortieCheck_Timer == nil then
 
@@ -345,26 +355,17 @@ EEMEMver_AC5npcAttackModifier = pcsx2_version_check()
 
 if (EEMEMver_AC5npcAttackModifier[3] == nil) then
 
-	-- Check if the emulator version is compatible with this script.
-	if (EEMEMver_AC5npcAttackModifier[1] == 2) then
+	-- Check if the emulator has the right game loaded.
+	local SLUS_21346_check = memscan_func(soExactValue, vtByteArray, nil, "80 55 42 00 90 55 42 00 A0 55 42 00 B0 55 42 00", nil, EEMEMver_AC5npcAttackModifier[2] + 0x300000, EEMEMver_AC5npcAttackModifier[2] + 0x5000000, "", 2, "0", true, nil, nil, nil)
 
-		-- Check if the emulator has the right game loaded.
-		local SLUS_21346_check = memscan_func(soExactValue, vtByteArray, nil, "80 55 42 00 90 55 42 00 A0 55 42 00 B0 55 42 00", nil, EEMEMver_AC5npcAttackModifier[2] + 0x300000, EEMEMver_AC5npcAttackModifier[2] + 0x5000000, "", 2, "0", true, nil, nil, nil)
-		
-		if #SLUS_21346_check ~= 0 then
-			
-			-- Proceed with the rest of the script if every check was passed.
-			IsAC5npcAttackModifierEnabled = true
+	if #SLUS_21346_check ~= 0 then
 
-		else
-
-			showMessage("<< This script is not compatible with the game you're currently emulating. >>")
-
-		end
+		-- Proceed with the rest of the script if every check was passed.
+		IsAC5npcAttackModifierEnabled = true
 
 	else
 
-		showMessage("<< This script is only compatible with PCSX2-qt. >>")
+		showMessage("<< This script is not compatible with the game you're currently emulating. >>")
 
 	end
 
@@ -391,7 +392,7 @@ end
 ----------------+
 
 if IsAC5npcAttackModifierEnabled then
-	
+
 	-- Initialize a table to store addresses and values.
 	AC5npcAttackModifier_dataList = {}
 
@@ -423,23 +424,22 @@ if IsAC5npcAttackModifierEnabled then
 		AC5npcAttackModifier_outSortieCheck_Timer = nil
 
 	end
-	
+
 	if readInteger(EEMEMver_AC5npcAttackModifier[2]) ~= nil then
 
 		if readBytes(EEMEMver_AC5npcAttackModifier[2] + 0x47B4C4, 1) == 4 then
-	
+
 			for i = 1, #AC5npcAttackModifier_dataList, 2 do
-	
+
 				writeBytes(AC5npcAttackModifier_dataList[i], AC5npcAttackModifier_dataList[i + 1])
-	
+
 			end
-	
+
 		end
-	
+
 	end
 
 	AC5npcAttackModifier_dataList = nil
-
 	IsAC5npcAttackModifierEnabled = nil
 
 end
