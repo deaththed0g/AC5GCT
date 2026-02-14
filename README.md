@@ -10,7 +10,7 @@ A Cheat Engine table containing a collection of scripts that will enable a free 
 
 - Cheat Engine 7.0 or latest installed in your computer. You can download the program from its [official website](https://www.cheatengine.org/).
 
-- PCSX2-qt stable version 2.4 or older ([official website](https://pcsx2.net/downloads/)) **[See NOTES]**.
+- PCSX2 ([official website](https://pcsx2.net/downloads/)) **[See NOTES]**.
 
 - A compatible ISO file of Ace Combat 5: The Unsung War **[See NOTES]**.
 
@@ -19,9 +19,9 @@ A Cheat Engine table containing a collection of scripts that will enable a free 
 [Check the wiki section.](https://github.com/deaththed0g/AC5GCT/wiki)
 
 #### Notes:
- 
- - **The "freecam" functions are not compatible with the latest nightly builds of the emulator.** Stick to the version indicated if you want to use them.
- 
+
+ - The table should work with both 1.x and 2.x versions of the emulator.
+
  - Games currently supported:
 	
 	|**Game**|**Serial**|
