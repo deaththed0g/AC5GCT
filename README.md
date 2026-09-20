@@ -20,7 +20,7 @@ A Cheat Engine table containing a collection of scripts that will enable a free 
 
 #### Notes:
 
- - The table should work with both 1.x and 2.x versions of the emulator.
+ - The scripts are compatible with the deprecated versions of the PCSX2 up to version [1.7.158](https://github.com/PCSX2/archive/releases/tag/v1.7.158)
 
  - Games currently supported:
 	
